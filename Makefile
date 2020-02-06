@@ -6,20 +6,7 @@
 #ECPPACK   = ecppack
 #OPENOCD    = openocd
 
-# Use Docker images
-DOCKER=docker
-#DOCKER=podman
-#
-PWD = $(shell pwd)
-DOCKERARGS = run --rm -v $(PWD):/src -w /src
-#
-GHDL      = $(DOCKER) $(DOCKERARGS) ghdl/synth:beta ghdl
-GHDLSYNTH = ghdl
-YOSYS     = $(DOCKER) $(DOCKERARGS) ghdl/synth:beta yosys
-NEXTPNR   = $(DOCKER) $(DOCKERARGS) ghdl/synth:nextpnr-ecp5 nextpnr-ecp5
-ECPPACK   = $(DOCKER) $(DOCKERARGS) ghdl/synth:trellis ecppack
-OPENOCD   = $(DOCKER) $(DOCKERARGS) --device /dev/bus/usb ghdl/synth:prog openocd
-
+include docker.mk
 
 # OrangeCrab with ECP85
 #GHDLARGS=-gCLK_FREQUENCY=50000000
@@ -30,18 +17,40 @@ OPENOCD   = $(DOCKER) $(DOCKERARGS) --device /dev/bus/usb ghdl/synth:prog openoc
 #OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
 
 # ECP5-EVN
-GHDL_GENERICS=-gCLK_FREQUENCY=12000000
-LPF=constraints/ecp5-evn.lpf
+# GHDL_GENERICS=-gCLK_FREQUENCY=12000000
+# LPF=constraints/ecp5-evn.lpf
+# PACKAGE=CABGA381
+# NEXTPNR_FLAGS=--um5g-85k --freq 12
+# OPENOCD_JTAG_CONFIG=openocd/ecp5-evn.cfg
+# OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
+
+# Versa ECP5(G)
+
+CLK_FREQ = 2500000
+
+GHDL_GENERICS=-gCLK_FREQUENCY=$(CLK_FREQ)
+LPF=constraints/versa.lpf
 PACKAGE=CABGA381
-NEXTPNR_FLAGS=--um5g-85k --freq 12
-OPENOCD_JTAG_CONFIG=openocd/ecp5-evn.cfg
-OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-85F.cfg
+NEXTPNR_FLAGS=--um5g-45k --freq 100
+OPENOCD_JTAG_CONFIG=openocd/ecp5-versa.cfg
+OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-45F.cfg
+
+GHDL_LIBFLAGS = -P/src/lib-devel/synlib/lattice/ecp5
+GHDL_LIB_ABSOLUTE_DIR = $(HOME)/src/vhdl/lib-devel
+DIAMOND_LIB_ABSOLUTE_DIR = /data/src/diamond_lib
+
+GHDL_FLAGS = --std=93c --workdir=work $(GHDL_LIBFLAGS)
 
 all: vhdl_blink.bit
 
-vhdl_blink.json: vhdl_blink.vhdl
-	$(GHDL) -a --std=08 $<
-	$(YOSYS) -m $(GHDLSYNTH) -p "ghdl --std=08 $(GHDL_GENERICS) toplevel; synth_ecp5 -json $@"
+show:
+	$(GHDL) --version
+
+vhdl_blink.json: black_boxes.vhdl vhdl_blink.vhdl 
+	$(YOSYS) -m $(GHDLSYNTH) -p \
+		"ghdl $(GHDL_FLAGS) $(GHDL_GENERICS) $^ -e toplevel; \
+		read_verilog pll_mac.v; \
+		synth_ecp5 -top toplevel_$(CLK_FREQ) -json $@"
 
 vhdl_blink_out.config: vhdl_blink.json $(LPF)
 	$(NEXTPNR) --json $< --lpf $(LPF) --textcfg $@ $(NEXTPNR_FLAGS) --package $(PACKAGE)
