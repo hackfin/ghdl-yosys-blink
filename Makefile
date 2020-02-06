@@ -26,7 +26,7 @@ include docker.mk
 
 # Versa ECP5(G)
 
-CLK_FREQ = 2500000
+CLK_FREQ = 12500000
 
 GHDL_GENERICS=-gCLK_FREQUENCY=$(CLK_FREQ)
 LPF=constraints/versa.lpf
