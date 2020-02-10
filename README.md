@@ -6,8 +6,11 @@ Open Source VHDL synthesis flow.
 ## Supported Hardware
 
 Right now only Lattice ECP5 boards are supported, but you should be able
-to use anything that yosys and nextpnr supports. I've personally tested
-the Lattice ECP5-EVN board and the OrangeCrab.
+to use anything that yosys and nextpnr supports.
+
+Known to work in original master branch:
+* Lattice ECP5-EVN board
+* OrangeCrab
 
 This fork supports the Versa ECP5 board with some added workarounds to include
 black box modules and vendor primitives. As there's currently no support for
@@ -59,7 +62,7 @@ So the current strategy to support synthesis of large projects seems to be:
    ```
  - Use this package in your code:
    `library work; use work.bb_components.all;`
-   Instanciate the desired component in your VHDL code.
+   Instantiate the desired component in your VHDL code.
  
  - During elaboration, GHDL will show a notice that the instance of this component
    'pll_mac' is not bound. It will therefore have to be included separately using
@@ -75,3 +78,4 @@ Top module:  \toplevel_25000000
 Used module:     \pll_mac
 ```
 
+Also note: Verilog is case sensititive. If the primitive uses the original naming from the Lattice ECP5 libraries, you need to wrap them explicitely.
