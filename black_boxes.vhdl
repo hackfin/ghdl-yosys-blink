@@ -8,12 +8,12 @@ package bb_components is
 
 component pll_mac is
     port (
-        CLKI: in  std_logic; 
-        CLKOP: out  std_logic; 
-        CLKOS: out  std_logic; 
-        CLKOS2: out  std_logic; 
-        CLKOS3: out  std_logic; 
-        LOCK: out  std_logic);
+        clki: in  std_logic; 
+        clkop: out  std_logic; 
+        clkos: out  std_logic; 
+        clkos2: out  std_logic; 
+        clkos3: out  std_logic; 
+        lock: out  std_logic);
 end component pll_mac;
 
 

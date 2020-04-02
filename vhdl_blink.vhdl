@@ -61,12 +61,12 @@ begin
 
 clk_pll1: pll_mac
     port map (
-        CLKI    =>  clk,
-        CLKOP   =>  open,
-        CLKOS   =>  mclk, -- 25 Mhz
-        CLKOS2  =>  open,
-        CLKOS3  =>  open,
-        LOCK    =>  open
+        clki    =>  clk,
+        clkop   =>  open,
+        clkos   =>  mclk, -- 25 Mhz
+        clkos2  =>  open,
+        clkos3  =>  open,
+        lock    =>  open
 	);
 
 	-- osc_inst: OSCG port map (osc => mclk);

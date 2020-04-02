@@ -35,8 +35,8 @@ NEXTPNR_FLAGS=--um5g-45k --freq 100
 OPENOCD_JTAG_CONFIG=openocd/ecp5-versa.cfg
 OPENOCD_DEVICE_CONFIG=openocd/LFE5UM5G-45F.cfg
 
-GHDL_LIBFLAGS = -P/src/lib-devel/synlib/lattice/ecp5
-GHDL_LIB_ABSOLUTE_DIR = $(HOME)/src/vhdl/lib-devel
+GHDL_LIBFLAGS = -Plib
+GHDL_LIB_ABSOLUTE_DIR = $(HOME)/vhdl/lib-devel/
 DIAMOND_LIB_ABSOLUTE_DIR = /data/src/diamond_lib
 
 GHDL_FLAGS = --std=93c --workdir=work $(GHDL_LIBFLAGS)
@@ -46,11 +46,19 @@ all: vhdl_blink.bit
 show:
 	$(GHDL) --version
 
+lib:
+	mkdir $@
+
+lib/ecp5um-std93.cf: $(GHDL_LIB_ABSOLUTE_DIR)/lattice/ecp5u/components.vhdl | lib
+	$(GHDL) -i --workdir=$(dir $@) --work=ecp5um \
+		$< 
+
+
 vhdl_blink.json: black_boxes.vhdl vhdl_blink.vhdl 
 	$(YOSYS) -m $(GHDLSYNTH) -p \
 		"ghdl $(GHDL_FLAGS) $(GHDL_GENERICS) $^ -e toplevel; \
 		read_verilog pll_mac.v; \
-		synth_ecp5 -top toplevel_$(CLK_FREQ) -json $@"
+		synth_ecp5 -top toplevel -json $@" 2>&1 | tee report.txt
 
 vhdl_blink_out.config: vhdl_blink.json $(LPF)
 	$(NEXTPNR) --json $< --lpf $(LPF) --textcfg $@ $(NEXTPNR_FLAGS) --package $(PACKAGE)
